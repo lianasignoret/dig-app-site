@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dig, the app for record collectors</title>
+<meta name="description" content="Scan a sleeve. Drop the needle. Find the next one. Dig is the app for vinyl diggers. Join the waiting list.">
+<meta property="og:title" content="Dig, the app for record collectors">
+<meta property="og:description" content="Scan a sleeve. Drop the needle. Find the next one. Join the waiting list.">
+<meta property="og:image" content="banner.jpg">
+<meta name="theme-color" content="#000000">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  /* Dig's design, as in the app (src/theme/tokens.ts) and the shop site: black ground, one accent, Helvetica, pills. */
+  :root { --ground:#000; --surface:#141414; --surface2:#1E1E1E; --line:#2A2A2A; --ink:#FFFFFF; --ink2:#B4B4B4; --ink3:#6F6F6F; --accent:#FF3D1F; --content:1260px; }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--ground); color:var(--ink); margin:0; font-family:"Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing:antialiased; font-size:17px; line-height:1.5; }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .wrap { max-width:var(--content); margin:0 auto; padding:0 clamp(20px, 5vw, 96px); }
+  header .wrap { display:flex; align-items:center; justify-content:space-between; height:84px; gap:16px; }
+  header img { height:34px; display:block; }
+  .lang { display:flex; gap:6px; align-items:center; }
+  .lang .ig { color:var(--ink); display:flex; margin-right:8px; }
+  .lang .ig:hover { color:var(--accent); }
+  .lang button { font:inherit; font-size:12px; font-weight:600; padding:6px 12px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--ink2); cursor:pointer; }
+  .lang button.on { background:var(--ink); color:var(--ground); border-color:var(--ink); }
+  .kicker { font-size:11px; font-weight:600; letter-spacing:1.6px; text-transform:uppercase; color:var(--accent); margin-bottom:14px; }
+  h1 { font-size:clamp(36px, 5.2vw, 72px); line-height:1.02; letter-spacing:-1.4px; font-weight:700; margin:0 0 18px; text-wrap:balance; }
+  h2 { font-size:clamp(24px, 3vw, 34px); line-height:1.1; letter-spacing:-.6px; font-weight:700; margin:0 0 12px; }
+  p { margin:0 0 14px; color:var(--ink2); }
+  p.lead { color:var(--ink); font-size:clamp(18px, 1.5vw, 22px); }
+  .btn { display:inline-flex; align-items:center; justify-content:center; font:inherit; font-weight:600; font-size:15px; height:48px; padding:0 24px; border-radius:999px; background:var(--accent); color:#000; border:0; cursor:pointer; white-space:nowrap; }
+  .btn:hover { opacity:.9; text-decoration:none; }
+  .btn.secondary { background:var(--surface2); color:var(--ink); }
+
+  /* hero: the words and the form on the left, the deck on the right */
+  .hero { padding:32px 0 56px; }
+  .hero .wrap { display:grid; grid-template-columns:minmax(0, 1fr) minmax(320px, 440px); gap:clamp(32px, 5vw, 80px); align-items:center; }
+  @media (max-width: 860px) { .hero .wrap { grid-template-columns:1fr; } }
+  form.wait { display:flex; gap:10px; margin:28px 0 10px; max-width:520px; }
+  form.wait input { flex:1; min-width:0; font:inherit; font-size:16px; height:48px; padding:0 18px; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:999px; }
+  form.wait input:focus { outline:none; border-color:var(--ink2); }
+  @media (max-width: 480px) { form.wait { flex-direction:column; } }
+  .fine { font-size:13px; color:var(--ink3); }
+  .thanks { display:none; background:var(--surface); padding:18px 20px; margin:28px 0 10px; max-width:520px; border-left:3px solid var(--accent); }
+  .thanks b { color:var(--ink); }
+
+  /* the station: a phone-sized deck, exactly the app's layout, in the browser */
+  .station { width:100%; max-width:440px; margin:0 auto; background:var(--ground); border:1px solid var(--line); border-radius:28px; overflow:hidden; box-shadow:0 30px 80px rgba(0,0,0,.6); }
+  .deck { position:relative; width:100%; aspect-ratio:390/470; overflow:hidden; background:#000; touch-action:none; user-select:none; -webkit-user-select:none; cursor:default; }
+  .deck > img.bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; }
+  .deck .base { position:absolute; pointer-events:none; }
+  .deck .platter { position:absolute; border-radius:50%; overflow:hidden; background:#161616; will-change:transform; }
+  .deck .platter > div { position:absolute; border-radius:50%; }
+  .deck .label { overflow:hidden; background:#E8E4DA; }
+  .deck .label img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .deck .spindle { position:absolute; width:9px; height:9px; border-radius:50%; background:#B8B8B8; border:1px solid #6A6A6A; left:50%; top:50%; transform:translate(-50%,-50%); }
+  .deck .arm { position:absolute; pointer-events:none; will-change:transform; }
+  .deck .arm img { position:absolute; display:block; }
+  .deck .arm img.tube { inset:0; width:100%; height:100%; }
+  .deck .hint { position:absolute; left:12px; bottom:10px; font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:#e9e2d0; text-shadow:0 1px 6px rgba(0,0,0,.8); pointer-events:none; opacity:.9; }
+  .deck.grabbing { cursor:grabbing; }
+  .controls { padding:16px 16px 18px; }
+  .controls .head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .controls .title { font-size:20px; font-weight:700; letter-spacing:-.4px; line-height:1.15; color:var(--ink); }
+  .controls .sub { font-size:13px; color:var(--ink2); margin-top:2px; }
+  .controls .now { font-size:13px; color:var(--ink3); margin-top:2px; min-height:17px; }
+  .controls .row { display:flex; justify-content:space-between; align-items:center; margin-top:12px; gap:8px; }
+  .controls .group { display:flex; gap:8px; }
+  .pill { height:40px; min-width:48px; padding:0 14px; border-radius:20px; background:var(--surface); color:var(--ink); border:0; font:inherit; font-size:13px; font-weight:500; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+  .pill:hover { background:var(--surface2); }
+  .pill.wide { min-width:64px; }
+  .pill:disabled { color:var(--ink3); cursor:default; }
+  .pill svg { width:16px; height:16px; fill:currentColor; }
+  .pill.wide svg { width:22px; height:22px; }
+  .decide { display:flex; gap:8px; margin-top:12px; }
+  .decide .btn { flex:1; padding:0; }
+  .decide .btn.ghost { background:transparent; color:var(--ink); flex:.7; }
+
+  /* what Dig does */
+  .what { padding:40px 0 56px; border-top:1px solid var(--line); }
+  .what .grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:24px; }
+  @media (max-width: 900px) { .what .grid { grid-template-columns:repeat(2, 1fr); } }
+  @media (max-width: 480px) { .what .grid { grid-template-columns:1fr; } }
+  .what .item { background:var(--surface); padding:22px; }
+  .what .item .ic { color:var(--accent); font-size:11px; font-weight:600; letter-spacing:1.6px; text-transform:uppercase; margin-bottom:10px; }
+  .what .item h3 { margin:0 0 6px; font-size:18px; letter-spacing:-.3px; }
+  .what .item p { margin:0; font-size:15px; }
+  .banner { width:100%; display:block; aspect-ratio:1733/907; object-fit:cover; }
+  footer { padding:36px 0 60px; font-size:14px; color:var(--ink3); }
+  footer .row { display:flex; flex-wrap:wrap; gap:14px 24px; margin-bottom:12px; }
+  footer a { color:var(--ink2); }
+  [data-fr], [data-en] { display:none; }
+  html[lang="fr"] [data-fr], html[lang="en"] [data-en] { display:revert; }
+  html[lang="fr"] span[data-fr], html[lang="en"] span[data-en] { display:inline; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior:auto; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a href="#top" aria-label="Dig"><img src="dig.png" alt="DIG"></a>
+    <div class="lang">
+      <a class="ig" href="https://instagram.com/digrecords" target="_blank" rel="noopener" aria-label="Instagram @digrecords"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+      <button id="l-en" onclick="setLang('en')">EN</button><button id="l-fr" onclick="setLang('fr')">FR</button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <div class="kicker"><span data-en>Built by diggers, for diggers.</span><span data-fr>Fait par des diggers, pour les diggers.</span></div>
+      <h1><span data-en>Scan a sleeve. Drop the needle. Find the next one.</span><span data-fr>Scannez une pochette. Posez le diamant. Trouvez le prochain.</span></h1>
+      <p class="lead"><span data-en>Dig is the app you open the evening before you go digging, and the one in your hand at the stall: a record scanned, on the turntable, with its price, and Buy, Want, Maybe or No.</span><span data-fr>Dig, c'est l'app qu'on ouvre la veille d'une chine, et celle qu'on a en main devant le bac : un disque scanné, sur la platine, avec son prix, et Acheter, Je veux, Peut-être ou Non.</span></p>
+      <p><span data-en>Buy, sell, and chase the wants, all from your pocket. Marvin, an old pal who has DJ'd all his life, knows your taste. Your crate, your wants, the fairs and shops near you.</span><span data-fr>Acheter, vendre, courir après ses wants, depuis la poche. Marvin, un vieux pote DJ depuis toujours, connaît vos goûts. Votre bac, vos wants, les bourses et les disquaires autour de vous.</span></p>
+
+      <!-- Formspree: create a form at formspree.io, paste its endpoint here. Until then submissions stay in this browser. -->
+      <form class="wait" id="wait" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" novalidate>
+        <input type="email" name="email" id="email" required autocomplete="email" inputmode="email" placeholder="you@email.com" aria-label="Email">
+        <input type="hidden" name="lang" id="lang-field" value="en">
+        <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
+        <button class="btn" type="submit" id="join"><span data-en>Join the waiting list</span><span data-fr>Rejoindre la liste d'attente</span></button>
+      </form>
+      <div class="thanks" id="thanks"><b><span data-en>You're on the list.</span><span data-fr>Vous êtes sur la liste.</span></b> <span data-en>We'll write when the app opens. Meanwhile, drop the needle on the right.</span><span data-fr>On vous écrit à l'ouverture. En attendant, posez le diamant, à droite.</span></div>
+      <p class="fine" id="fine"><span data-en>iPhone first. No spam, one email when it opens.</span><span data-fr>iPhone d'abord. Pas de spam, un seul email à l'ouverture.</span></p>
+    </div>
+
+    <!-- The listening station, as in the app: a record on the deck, the arm in your hand. -->
+    <div class="station" aria-label="The listening station">
+      <div class="deck" id="deck">
+        <img class="bg" src="deck.jpg" alt="">
+        <img class="base" id="base" src="base.png" alt="">
+        <div class="platter" id="platter"></div>
+        <div class="arm" id="arm"><img class="tube" src="arm.png" alt=""><img id="cap" src="bearing.png" alt=""></div>
+        <div class="hint" id="hint"><span data-en>Drag the arm onto a track</span><span data-fr>Posez le bras sur un morceau</span></div>
+      </div>
+      <div class="controls">
+        <div class="head">
+          <div>
+            <div class="title">Pieces Of A Man</div>
+            <div class="sub">Gil Scott-Heron · LP (33) · 1971</div>
+            <div class="now" id="now"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="group">
+            <button class="pill wide" id="play" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M7 5v14l12-7z"/></svg></button>
+            <button class="pill" id="flip">Side A</button>
+            <button class="pill" id="rpm" aria-label="33 rpm. Switch speed">33</button>
+          </div>
+          <div class="group">
+            <button class="pill" id="prev" aria-label="Previous track"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+            <button class="pill" id="next" aria-label="Next track"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
+          </div>
+        </div>
+        <div class="decide">
+          <a class="btn" href="#wait" onclick="document.getElementById('email').focus()"><span data-en>Buy</span><span data-fr>Acheter</span></a>
+          <a class="btn secondary" href="#wait" onclick="document.getElementById('email').focus()"><span data-en>Want</span><span data-fr>Je veux</span></a>
+          <a class="btn secondary" href="#wait" onclick="document.getElementById('email').focus()"><span data-en>Maybe</span><span data-fr>Peut-être</span></a>
+          <a class="btn ghost" href="#wait" onclick="document.getElementById('email').focus()"><span data-en>No</span><span data-fr>Non</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<img class="banner" src="banner.jpg" alt="A hand flipping through a crate of records, Pieces of a Man on top">
+
+<section class="what">
+  <div class="wrap">
+    <div class="kicker"><span data-en>What Dig does</span><span data-fr>Ce que fait Dig</span></div>
+    <div class="grid">
+      <div class="item"><div class="ic"><span data-en>Listening station</span><span data-fr>Station d'écoute</span></div><h3><span data-en>Hear it before you buy it</span><span data-fr>Écoutez avant d'acheter</span></h3><p><span data-en>Scan the sleeve, the record lands on the deck, the price is next to it. Buy, Want, Maybe or No, and Dig remembers.</span><span data-fr>Scannez la pochette, le disque arrive sur la platine, le prix à côté. Acheter, je veux, peut-être ou non, Dig s'en souvient.</span></p></div>
+      <div class="item"><div class="ic">Marvin</div><h3><span data-en>An old pal behind the counter</span><span data-fr>Un vieux pote derrière le comptoir</span></h3><p><span data-en>A DJ all his life who knows your taste. Ask him about a pressing, a label, a price, and he tells you a story on the way.</span><span data-fr>DJ depuis toujours, il connaît vos goûts. Une question sur un pressage, un label, un prix, et une histoire en chemin.</span></p></div>
+      <div class="item"><div class="ic"><span data-en>Near me</span><span data-fr>Autour de vous</span></div><h3><span data-en>Where to dig this weekend</span><span data-fr>Où chiner ce week-end</span></h3><p><span data-en>Record fairs, vide-greniers and the shops Dig recommends, with your plan for the day.</span><span data-fr>Bourses, vide-greniers et les disquaires que Dig recommande, avec votre plan pour la journée.</span></p></div>
+      <div class="item"><div class="ic"><span data-en>Crate and market</span><span data-fr>Bac et marché</span></div><h3><span data-en>Own, hunt, wonder</span><span data-fr>Avoir, chercher, hésiter</span></h3><p><span data-en>Your records, your wants with a target price, and what you sell. Discogs comes with you.</span><span data-fr>Vos disques, vos wants avec un prix cible, et ce que vous vendez. Discogs vous suit.</span></p></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="row"><a href="https://instagram.com/digrecords" target="_blank" rel="noopener">@digrecords</a><a href="mailto:hello@digrecords.app">hello@digrecords.app</a><a href="https://lianasignoret.github.io/dig-records-site/" target="_blank" rel="noopener">Dig Records, Rennes</a></div>
+    <div>© 2026 DIG</div>
+  </div>
+</footer>
+
+<script>
+  function setLang(l) {
+    document.documentElement.setAttribute('lang', l);
+    document.getElementById('l-fr').classList.toggle('on', l === 'fr');
+    document.getElementById('l-en').classList.toggle('on', l === 'en');
+    document.getElementById('lang-field').value = l;
+    try { localStorage.setItem('dig-lang', l); } catch (e) {}
+  }
+  var saved = null; try { saved = localStorage.getItem('dig-lang'); } catch (e) {}
+  setLang(saved || ((navigator.language || 'en').slice(0, 2) === 'fr' ? 'fr' : 'en'));
+
+  // The waiting list: posts to Formspree; before the endpoint is set, the email is kept in this browser so testing works.
+  document.getElementById('wait').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var input = document.getElementById('email'), email = input.value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { input.focus(); input.style.borderColor = '#FF3D1F'; return; }
+    var form = e.target, btn = document.getElementById('join');
+    var done = function () { form.style.display = 'none'; document.getElementById('fine').style.display = 'none'; document.getElementById('thanks').style.display = 'block'; };
+    if (/YOUR_FORM_ID/.test(form.action)) { try { localStorage.setItem('dig-waitlist', email); } catch (x) {} done(); return; }
+    btn.disabled = true;
+    fetch(form.action, { method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(form) })
+      .then(function (r) { if (!r.ok) throw new Error(); done(); })
+      .catch(function () { btn.disabled = false; input.style.borderColor = '#FF3D1F'; });
+  });
+</script>
+<script src="station.js"></script>
+</body>
+</html>
