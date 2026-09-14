@@ -119,11 +119,10 @@
       <p class="lead"><span data-en>Dig is the app you open the evening before you go digging, and the one in your hand at the stall: a record scanned, on the turntable, with its price, and Buy, Want, Maybe or No.</span><span data-fr>Dig, c'est l'app qu'on ouvre la veille d'une chine, et celle qu'on a en main devant le bac : un disque scanné, sur la platine, avec son prix, et Acheter, Je veux, Peut-être ou Non.</span></p>
       <p><span data-en>Buy, sell, and chase the wants, all from your pocket. Marvin, an old pal who has DJ'd all his life, knows your taste. Your crate, your wants, the fairs and shops near you.</span><span data-fr>Acheter, vendre, courir après ses wants, depuis la poche. Marvin, un vieux pote DJ depuis toujours, connaît vos goûts. Votre bac, vos wants, les bourses et les disquaires autour de vous.</span></p>
 
-      <!-- Formspree: create a form at formspree.io, paste its endpoint here. Until then submissions stay in this browser. -->
-      <form class="wait" id="wait" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" novalidate>
+      <!-- The waiting list is the Lovable Cloud table `waitlist` of the DIG Record App project (the same one the previous
+           page wrote to), reached through Supabase's REST endpoint with the project's publishable key. -->
+      <form class="wait" id="wait" action="https://fzuviylfyyrfsjdgwsde.supabase.co/rest/v1/waitlist" method="POST" novalidate data-key="sb_publishable_cVYgCkaxyIqX6DhITqSl2g_8cTNhJSs">
         <input type="email" name="email" id="email" required autocomplete="email" inputmode="email" placeholder="you@email.com" aria-label="Email">
-        <input type="hidden" name="lang" id="lang-field" value="en">
-        <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
         <button class="btn" type="submit" id="join"><span data-en>Join the waiting list</span><span data-fr>Rejoindre la liste d'attente</span></button>
       </form>
       <div class="thanks" id="thanks"><b><span data-en>You're on the list.</span><span data-fr>Vous êtes sur la liste.</span></b> <span data-en>We'll write when the app opens. Meanwhile, drop the needle on the right.</span><span data-fr>On vous écrit à l'ouverture. En attendant, posez le diamant, à droite.</span></div>
@@ -196,23 +195,21 @@
     document.documentElement.setAttribute('lang', l);
     document.getElementById('l-fr').classList.toggle('on', l === 'fr');
     document.getElementById('l-en').classList.toggle('on', l === 'en');
-    document.getElementById('lang-field').value = l;
     try { localStorage.setItem('dig-lang', l); } catch (e) {}
   }
   var saved = null; try { saved = localStorage.getItem('dig-lang'); } catch (e) {}
   setLang(saved || ((navigator.language || 'en').slice(0, 2) === 'fr' ? 'fr' : 'en'));
 
-  // The waiting list: posts to Formspree; before the endpoint is set, the email is kept in this browser so testing works.
+  // The waiting list: one row per email in the `waitlist` table; an email already there (409) counts as joined.
   document.getElementById('wait').addEventListener('submit', function (e) {
     e.preventDefault();
-    var input = document.getElementById('email'), email = input.value.trim();
+    var input = document.getElementById('email'), email = input.value.trim().toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { input.focus(); input.style.borderColor = '#FF3D1F'; return; }
-    var form = e.target, btn = document.getElementById('join');
+    var form = e.target, btn = document.getElementById('join'), key = form.getAttribute('data-key');
     var done = function () { form.style.display = 'none'; document.getElementById('fine').style.display = 'none'; document.getElementById('thanks').style.display = 'block'; };
-    if (/YOUR_FORM_ID/.test(form.action)) { try { localStorage.setItem('dig-waitlist', email); } catch (x) {} done(); return; }
     btn.disabled = true;
-    fetch(form.action, { method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(form) })
-      .then(function (r) { if (!r.ok) throw new Error(); done(); })
+    fetch(form.action, { method: 'POST', headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ email: email }) })
+      .then(function (r) { if (!r.ok && r.status !== 409) throw new Error(); done(); })
       .catch(function () { btn.disabled = false; input.style.borderColor = '#FF3D1F'; });
   });
 </script>

@@ -6,9 +6,9 @@ station (`station.js`: the same proportions and behaviours as `src/components/tu
 Pieces Of A Man, previews from Apple's catalogue at load, no key). Assets are copies of `assets/turntable/*` and
 `assets/brand/dig.png`; `banner.jpg` is the crate photo from the previous page.
 
-The form posts to Formspree: create a form at formspree.io and paste its endpoint into the form's `action` in
-`index.html` (replace `YOUR_FORM_ID`). Until then a submission is kept in the visitor's browser and the thank-you shows,
-so the page can be tested. Formspree's free tier is 50 submissions a month; the next tier is a few euros.
+The form writes to the `waitlist` table of the DIG Record App project on Lovable Cloud (Supabase project
+`fzuviylfyyrfsjdgwsde`, publishable key in the form's `data-key`), the same table the previous Lovable page filled, so
+the list continues. The emails are in Lovable → the project → Cloud → Database → waitlist.
 
 Live at https://lianasignoret.github.io/dig-app-site/ from the public repo `lianasignoret/dig-app-site` (GitHub Pages).
 To update: copy this folder's files into that repo and push. To serve it at digrecords.app: add a `CNAME` file
