@@ -20,13 +20,15 @@
   a { color:var(--accent); text-decoration:none; }
   a:hover { text-decoration:underline; }
   .wrap { max-width:var(--content); margin:0 auto; padding:0 clamp(20px, 5vw, 96px); }
+  /* the ribbon is cream, as on the shop site, so the wordmark's black extrusion shows (Liana, 2026-09-14 19:39) */
+  header { position:sticky; top:0; background:#F2EFE8; border-bottom:1px solid #d8d0bd; z-index:5; }
   header .wrap { display:flex; align-items:center; justify-content:space-between; height:84px; gap:16px; }
-  header img { height:34px; display:block; }
+  header img { height:44px; display:block; }
   .lang { display:flex; gap:6px; align-items:center; }
-  .lang .ig { color:var(--ink); display:flex; margin-right:8px; }
+  .lang .ig { color:#111; display:flex; margin-right:8px; }
   .lang .ig:hover { color:var(--accent); }
-  .lang button { font:inherit; font-size:12px; font-weight:600; padding:6px 12px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--ink2); cursor:pointer; }
-  .lang button.on { background:var(--ink); color:var(--ground); border-color:var(--ink); }
+  .lang button { font:inherit; font-size:12px; font-weight:600; padding:6px 12px; border-radius:999px; border:1px solid #cfc8b6; background:transparent; color:#444; cursor:pointer; }
+  .lang button.on { background:#111; color:#F2EFE8; border-color:#111; }
   .kicker { font-size:11px; font-weight:600; letter-spacing:1.6px; text-transform:uppercase; color:var(--accent); margin-bottom:14px; }
   h1 { font-size:clamp(36px, 5.2vw, 72px); line-height:1.02; letter-spacing:-1.4px; font-weight:700; margin:0 0 18px; text-wrap:balance; }
   h2 { font-size:clamp(24px, 3vw, 34px); line-height:1.1; letter-spacing:-.6px; font-weight:700; margin:0 0 12px; }
