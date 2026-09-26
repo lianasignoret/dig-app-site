@@ -10,7 +10,15 @@ The form writes to the `waitlist` table of the DIG Record App project on Lovable
 `fzuviylfyyrfsjdgwsde`, publishable key in the form's `data-key`), the same table the previous Lovable page filled, so
 the list continues. The emails are in Lovable → the project → Cloud → Database → waitlist.
 
-Live at https://lianasignoret.github.io/dig-app-site/ from the public repo `lianasignoret/dig-app-site` (GitHub Pages).
-To update: copy this folder's files into that repo and push. To serve it at digrecords.app: add a `CNAME` file
-containing `digrecords.app`, set the custom domain in the repo's Pages settings, and at the registrar point
-`digrecords.app` (A records 185.199.108.153, .109.153, .110.153, .111.153) and `www` (CNAME lianasignoret.github.io) there.
+Published from Lovable at **https://digrecords.app** (project "DIG Record App", repo `lianasignoret/dig-vinyl-vibes`, connected
+2026-09-14 18:15; digrecords.store and digrecords.fr point at the same project). There the page is served as is by
+`src/routes/index.tsx` from `src/site/index.html`, with `station.js` and the images in `public/` and absolute asset paths.
+To update: copy `index.html` to `src/site/`, the other files to `public/`, make the asset paths absolute (`/deck.jpg`),
+push to `main`; Lovable syncs it, then Publish → Update. A mirror runs on GitHub Pages at
+https://lianasignoret.github.io/dig-app-site/ (repo `lianasignoret/dig-app-site`, relative paths).
+
+**Sign-up emails to the team.** The page calls the Edge Function `join` (`supabase/functions/join/index.ts`, deployed on
+Lovable Cloud 2026-09-14 18:25): it writes the row and, when the secrets exist, mails the team through Resend. Secrets in
+Lovable → project → Cloud → Secrets: `RESEND_API_KEY` (resend.com, with digrecords.app verified there), `WAITLIST_NOTIFY_TO`
+(comma-separated addresses), optional `WAITLIST_FROM` (default `Dig <hello@digrecords.app>`). Without them the row is
+still written and no email goes out. If the function is ever missing, the page inserts the row directly.
